@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>hanami sleep mode</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  html, body {
+    width: 100%;
+    height: 100%;
+    background: #050304;
+    overflow: hidden;
+    position: fixed;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+  }
+  .scene {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(ellipse at 55% 20%, #16090e 0%, #080406 55%, #020102 100%);
+    overflow: hidden;
+  }
+
+  /* Ветка сакуры: сверху, сдвинута правее и повёрнута направо */
+  .branch-wrap {
+    position: absolute;
+    top: -12px;
+    left: 24vw;
+    width: min(74vw, 780px);
+    z-index: 5;
+    pointer-events: none;
+    transform-origin: 18% 8%;
+    animation: branchSway 8s ease-in-out infinite alternate;
+  }
+
+  @keyframes branchSway {
+    0%   { transform: rotate(4deg); }
+    100% { transform: rotate(6.2deg); }
+  }
+
+  .caption {
+    position: fixed;
+    right: calc(18px + env(safe-area-inset-right));
+    bottom: calc(22px + env(safe-area-inset-bottom));
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    color: rgba(255, 224, 235, 0.28);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 4.5px;
+    text-transform: lowercase;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .petal {
+    position: absolute;
+    right: -30px;
+    opacity: var(--op);
+    pointer-events: none;
+    will-change: transform;
+    animation: flyLeft var(--dur) linear var(--delay) infinite;
+  }
+
+  .particle {
+    position: absolute;
+    right: -15px;
+    border-radius: 50%;
+    background: rgba(255, 226, 236, 0.85);
+    opacity: var(--op);
+    pointer-events: none;
+    will-change: transform;
+    animation: flyParticleLeft var(--dur) linear var(--delay) infinite;
+  }
+
+  @keyframes flyLeft {
+    0% {
+      transform: translate3d(30px, 0px, 0) rotate(var(--r0)) scale(0.95);
+    }
+    50% {
+      transform: translate3d(-52vw, var(--sway), 0) rotate(calc((var(--r0) + var(--r1)) / 2)) scale(1.04);
+    }
+    100% {
+      transform: translate3d(calc(-100vw - 60px), calc(var(--sway) * 1.35), 0) rotate(var(--r1)) scale(0.95);
+    }
+  }
+
+  @keyframes flyParticleLeft {
+    0% {
+      transform: translate3d(20px, 0px, 0);
+    }
+    50% {
+      transform: translate3d(-52vw, var(--sway), 0);
+    }
+    100% {
+      transform: translate3d(calc(-100vw - 40px), calc(var(--sway) * 1.15), 0);
+    }
+  }
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="branch-wrap">
+    <svg viewBox="0 0 760 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="barkGrad" x1="80" y1="0" x2="720" y2="220" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#2a191f"/>
+          <stop offset="55%" stop-color="#1e1116"/>
+          <stop offset="100%" stop-color="#12090d"/>
+        </linearGradient>
+
+        <linearGradient id="sakuraPetalGrad" x1="0" y1="-26" x2="0" y2="0" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#fff4f8"/>
+          <stop offset="55%" stop-color="#ffd5e4"/>
+          <stop offset="100%" stop-color="#f59ab9"/>
+        </linearGradient>
+
+        <linearGradient id="sakuraPetalAlt" x1="0" y1="-26" x2="0" y2="0" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffffff"/>
+          <stop offset="60%" stop-color="#ffe0eb"/>
+          <stop offset="100%" stop-color="#f7aec8"/>
+        </linearGradient>
+
+        <!-- Четкий 5-лепестковый цветок сакуры без размытого свечения -->
+        <g id="sakuraFlower">
+          <g transform="rotate(0)">
+            <path d="M0,0 C-7,-7 -10,-18 -4.5,-25 L0,-20.5 L4.5,-25 C10,-18 7,-7 0,0 Z" fill="url(#sakuraPetalGrad)"/>
+          </g>
+          <g transform="rotate(72)">
+            <path d="M0,0 C-7,-7 -10,-18 -4.5,-25 L0,-20.5 L4.5,-25 C10,-18 7,-7 0,0 Z" fill="url(#sakuraPetalAlt)"/>
+          </g>
+          <g transform="rotate(144)">
+            <path d="M0,0 C-7,-7 -10,-18 -4.5,-25 L0,-20.5 L4.5,-25 C10,-18 7,-7 0,0 Z" fill="url(#sakuraPetalGrad)"/>
+          </g>
+          <g transform="rotate(216)">
+            <path d="M0,0 C-7,-7 -10,-18 -4.5,-25 L0,-20.5 L4.5,-25 C10,-18 7,-7 0,0 Z" fill="url(#sakuraPetalAlt)"/>
+          </g>
+          <g transform="rotate(288)">
+            <path d="M0,0 C-7,-7 -10,-18 -4.5,-25 L0,-20.5 L4.5,-25 C10,-18 7,-7 0,0 Z" fill="url(#sakuraPetalGrad)"/>
+          </g>
+          <!-- Сердцевина и тычинки -->
+          <circle cx="0" cy="0" r="3.4" fill="#c95b82"/>
+          <line x1="0" y1="0" x2="0" y2="-7.5" stroke="#ffdce8" stroke-width="0.7"/>
+          <circle cx="0" cy="-8" r="1" fill="#fff0f5"/>
+          <line x1="0" y1="0" x2="7" y2="-2.5" stroke="#ffdce8" stroke-width="0.7"/>
+          <circle cx="7.5" cy="-2.7" r="1" fill="#fff0f5"/>
+          <line x1="0" y1="0" x2="4.5" y2="6" stroke="#ffdce8" stroke-width="0.7"/>
+          <circle cx="4.8" cy="6.5" r="1" fill="#fff0f5"/>
+          <line x1="0" y1="0" x2="-4.5" y2="6" stroke="#ffdce8" stroke-width="0.7"/>
+          <circle cx="-4.8" cy="6.5" r="1" fill="#fff0f5"/>
+          <line x1="0" y1="0" x2="-7" y2="-2.5" stroke="#ffdce8" stroke-width="0.7"/>
+          <circle cx="-7.5" cy="-2.7" r="1" fill="#fff0f5"/>
+        </g>
+
+        <!-- Бутон -->
+        <g id="sakuraBud">
+          <path d="M0,0 C-4,-5 -4.5,-11 0,-15 C4.5,-11 4,-5 0,0 Z" fill="#f59ab9"/>
+          <path d="M-2.5,0 C-2,-3 2,-3 2.5,0 Z" fill="#4a2834"/>
+        </g>
+      </defs>
+
+      <!-- Основная ветка выходит сверху и направлена направо и вниз -->
+      <path d="M 90 -10 C 165 36, 265 78, 395 108 C 515 136, 625 148, 735 142" stroke="url(#barkGrad)" stroke-width="11" stroke-linecap="round"/>
+      <!-- Верхний правый побег -->
+      <path d="M 320 89 C 415 74, 515 68, 635 76" stroke="url(#barkGrad)" stroke-width="6" stroke-linecap="round"/>
+      <!-- Нижний правый побег -->
+      <path d="M 245 66 C 325 118, 415 162, 535 194" stroke="url(#barkGrad)" stroke-width="6.5" stroke-linecap="round"/>
+      <!-- Тонкие ответвления направо -->
+      <path d="M 455 120 C 535 114, 605 112, 685 116" stroke="url(#barkGrad)" stroke-width="3.8" stroke-linecap="round"/>
+      <path d="M 390 154 C 455 178, 510 198, 575 212" stroke="url(#barkGrad)" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M 480 71 C 540 54, 595 48, 655 50" stroke="url(#barkGrad)" stroke-width="3" stroke-linecap="round"/>
+
+      <!-- Бутоны -->
+      <use href="#sakuraBud" transform="translate(658, 49) rotate(82) scale(0.95)"/>
+      <use href="#sakuraBud" transform="translate(738, 141) rotate(94) scale(1.05)"/>
+      <use href="#sakuraBud" transform="translate(688, 116) rotate(88) scale(0.9)"/>
+      <use href="#sakuraBud" transform="translate(578, 212) rotate(108) scale(0.9)"/>
+
+      <!-- Соцветия из лепестков -->
+      <use href="#sakuraFlower" transform="translate(215, 52) rotate(18) scale(0.92)"/>
+      <use href="#sakuraFlower" transform="translate(262, 74) rotate(42) scale(1.08)"/>
+      <use href="#sakuraFlower" transform="translate(335, 86) rotate(12) scale(0.95)"/>
+      <use href="#sakuraFlower" transform="translate(310, 114) rotate(65) scale(0.88)"/>
+
+      <use href="#sakuraFlower" transform="translate(425, 74) rotate(28) scale(1.05)"/>
+      <use href="#sakuraFlower" transform="translate(465, 66) rotate(52) scale(0.84)"/>
+      <use href="#sakuraFlower" transform="translate(545, 72) rotate(15) scale(1.0)"/>
+      <use href="#sakuraFlower" transform="translate(612, 76) rotate(38) scale(0.86)"/>
+
+      <use href="#sakuraFlower" transform="translate(415, 114) rotate(22) scale(1.12)"/>
+      <use href="#sakuraFlower" transform="translate(485, 122) rotate(48) scale(0.94)"/>
+      <use href="#sakuraFlower" transform="translate(565, 134) rotate(14) scale(1.06)"/>
+      <use href="#sakuraFlower" transform="translate(640, 140) rotate(33) scale(0.9)"/>
+
+      <use href="#sakuraFlower" transform="translate(365, 145) rotate(58) scale(0.96)"/>
+      <use href="#sakuraFlower" transform="translate(445, 174) rotate(24) scale(1.04)"/>
+      <use href="#sakuraFlower" transform="translate(515, 192) rotate(45) scale(0.88)"/>
+    </svg>
+  </div>
+
+  <svg class="petal" style="top:61.47%;width:9.2px;height:9.2px;--dur:14.03s;--delay:-4.91s;--sway:28.6px;--r0:346deg;--r1:-113deg;--op:0.73;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg0" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffdce8"/>
+          <stop offset="100%" stop-color="#ffb3cd"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg0)"/>
+    </svg><svg class="petal" style="top:4.77%;width:11.0px;height:11.0px;--dur:16.56s;--delay:-0.58s;--sway:-25.1px;--r0:332deg;--r1:871deg;--op:0.55;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg1" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffc7db"/>
+          <stop offset="100%" stop-color="#ff99bc"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg1)"/>
+    </svg><svg class="petal" style="top:27.87%;width:16.8px;height:16.8px;--dur:19.35s;--delay:-3.51s;--sway:-2.7px;--r0:142deg;--r1:-117deg;--op:0.9;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg2" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffd1e1"/>
+          <stop offset="100%" stop-color="#ffa3c2"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg2)"/>
+    </svg><svg class="petal" style="top:11.51%;width:12.4px;height:12.4px;--dur:14.95s;--delay:-7.57s;--sway:-18.5px;--r0:22deg;--r1:-393deg;--op:0.91;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg3" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#fff0f5"/>
+          <stop offset="100%" stop-color="#ffd1e1"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg3)"/>
+    </svg><svg class="petal" style="top:9.33%;width:11.6px;height:11.6px;--dur:17.92s;--delay:-19.48s;--sway:-8.8px;--r0:98deg;--r1:-442deg;--op:0.47;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg4" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffe6ef"/>
+          <stop offset="100%" stop-color="#ffc2d8"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg4)"/>
+    </svg><svg class="petal" style="top:73.9%;width:17.9px;height:17.9px;--dur:20.41s;--delay:-19.06s;--sway:-7.0px;--r0:232deg;--r1:737deg;--op:0.53;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg5" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffd1e1"/>
+          <stop offset="100%" stop-color="#ffa3c2"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg5)"/>
+    </svg><svg class="petal" style="top:21.48%;width:11.4px;height:11.4px;--dur:21.3s;--delay:-14.26s;--sway:15.9px;--r0:87deg;--r1:-366deg;--op:0.53;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg6" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#fff0f5"/>
+          <stop offset="100%" stop-color="#ffd1e1"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg6)"/>
+    </svg><svg class="petal" style="top:27.11%;width:17.3px;height:17.3px;--dur:18.57s;--delay:-4.83s;--sway:-12.6px;--r0:28deg;--r1:-269deg;--op:0.83;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg7" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#fff0f5"/>
+          <stop offset="100%" stop-color="#ffd1e1"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg7)"/>
+    </svg><svg class="petal" style="top:26.9%;width:10.9px;height:10.9px;--dur:21.37s;--delay:-19.28s;--sway:-13.5px;--r0:335deg;--r1:770deg;--op:0.87;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg8" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#fff0f5"/>
+          <stop offset="100%" stop-color="#ffd1e1"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg8)"/>
+    </svg><svg class="petal" style="top:15.29%;width:10.3px;height:10.3px;--dur:19.19s;--delay:-11.86s;--sway:29.7px;--r0:219deg;--r1:697deg;--op:0.62;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg9" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffe6ef"/>
+          <stop offset="100%" stop-color="#ffc2d8"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg9)"/>
+    </svg><svg class="petal" style="top:49.39%;width:9.8px;height:9.8px;--dur:11.52s;--delay:-2.41s;--sway:17.7px;--r0:348deg;--r1:-48deg;--op:0.63;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg10" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffc7db"/>
+          <stop offset="100%" stop-color="#ff99bc"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg10)"/>
+    </svg><svg class="petal" style="top:94.64%;width:13.8px;height:13.8px;--dur:21.68s;--delay:-18.94s;--sway:-43.9px;--r0:58deg;--r1:587deg;--op:0.81;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg11" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffd1e1"/>
+          <stop offset="100%" stop-color="#ffa3c2"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg11)"/>
+    </svg><svg class="petal" style="top:12.37%;width:12.9px;height:12.9px;--dur:15.99s;--delay:-20.98s;--sway:42.6px;--r0:134deg;--r1:-302deg;--op:0.69;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg12" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffdce8"/>
+          <stop offset="100%" stop-color="#ffb3cd"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg12)"/>
+    </svg><svg class="petal" style="top:82.96%;width:11.7px;height:11.7px;--dur:18.03s;--delay:-13.4s;--sway:-29.7px;--r0:82deg;--r1:-374deg;--op:0.73;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg13" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#fff0f5"/>
+          <stop offset="100%" stop-color="#ffd1e1"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg13)"/>
+    </svg><svg class="petal" style="top:3.81%;width:17.4px;height:17.4px;--dur:20.67s;--delay:-18.3s;--sway:-14.2px;--r0:29deg;--r1:-274deg;--op:0.49;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg14" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#fff0f5"/>
+          <stop offset="100%" stop-color="#ffd1e1"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg14)"/>
+    </svg><svg class="petal" style="top:77.89%;width:17.8px;height:17.8px;--dur:16.86s;--delay:-2.77s;--sway:21.0px;--r0:281deg;--r1:545deg;--op:0.7;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg15" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffc7db"/>
+          <stop offset="100%" stop-color="#ff99bc"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg15)"/>
+    </svg><svg class="petal" style="top:41.35%;width:10.9px;height:10.9px;--dur:16.93s;--delay:-16.06s;--sway:-24.9px;--r0:159deg;--r1:543deg;--op:0.66;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg16" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffc7db"/>
+          <stop offset="100%" stop-color="#ff99bc"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg16)"/>
+    </svg><svg class="petal" style="top:43.99%;width:11.2px;height:11.2px;--dur:11.7s;--delay:-0.46s;--sway:10.4px;--r0:301deg;--r1:9deg;--op:0.48;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg17" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffdce8"/>
+          <stop offset="100%" stop-color="#ffb3cd"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg17)"/>
+    </svg><svg class="petal" style="top:23.29%;width:17.1px;height:17.1px;--dur:20.46s;--delay:-1.56s;--sway:-21.2px;--r0:342deg;--r1:-86deg;--op:0.7;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg18" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffc7db"/>
+          <stop offset="100%" stop-color="#ff99bc"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg18)"/>
+    </svg><svg class="petal" style="top:55.59%;width:11.2px;height:11.2px;--dur:16.2s;--delay:-8.96s;--sway:-35.6px;--r0:337deg;--r1:737deg;--op:0.65;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg19" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#fff0f5"/>
+          <stop offset="100%" stop-color="#ffd1e1"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg19)"/>
+    </svg><svg class="petal" style="top:82.34%;width:9.5px;height:9.5px;--dur:18.19s;--delay:-14.22s;--sway:-38.9px;--r0:173deg;--r1:-62deg;--op:0.54;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg20" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffc7db"/>
+          <stop offset="100%" stop-color="#ff99bc"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg20)"/>
+    </svg><svg class="petal" style="top:43.72%;width:12.8px;height:12.8px;--dur:14.06s;--delay:-5.5s;--sway:47.3px;--r0:226deg;--r1:-235deg;--op:0.47;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg21" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffc7db"/>
+          <stop offset="100%" stop-color="#ff99bc"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg21)"/>
+    </svg><svg class="petal" style="top:79.75%;width:17.7px;height:17.7px;--dur:21.19s;--delay:-18.67s;--sway:-28.4px;--r0:248deg;--r1:-178deg;--op:0.86;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg22" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffdce8"/>
+          <stop offset="100%" stop-color="#ffb3cd"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg22)"/>
+    </svg><svg class="petal" style="top:17.31%;width:9.0px;height:9.0px;--dur:15.29s;--delay:-20.38s;--sway:33.5px;--r0:146deg;--r1:542deg;--op:0.52;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg23" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffd1e1"/>
+          <stop offset="100%" stop-color="#ffa3c2"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg23)"/>
+    </svg><svg class="petal" style="top:22.25%;width:9.5px;height:9.5px;--dur:19.09s;--delay:-1.34s;--sway:-13.6px;--r0:25deg;--r1:504deg;--op:0.69;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg24" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffc7db"/>
+          <stop offset="100%" stop-color="#ff99bc"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg24)"/>
+    </svg><svg class="petal" style="top:16.64%;width:17.6px;height:17.6px;--dur:11.88s;--delay:-4.09s;--sway:14.5px;--r0:345deg;--r1:645deg;--op:0.51;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg25" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffc7db"/>
+          <stop offset="100%" stop-color="#ff99bc"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg25)"/>
+    </svg><svg class="petal" style="top:24.9%;width:14.4px;height:14.4px;--dur:17.81s;--delay:-9.22s;--sway:13.4px;--r0:267deg;--r1:608deg;--op:0.55;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg26" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffd1e1"/>
+          <stop offset="100%" stop-color="#ffa3c2"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg26)"/>
+    </svg><svg class="petal" style="top:24.2%;width:12.6px;height:12.6px;--dur:18.39s;--delay:-6.6s;--sway:-13.4px;--r0:37deg;--r1:221deg;--op:0.74;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg27" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffc7db"/>
+          <stop offset="100%" stop-color="#ff99bc"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg27)"/>
+    </svg><svg class="petal" style="top:94.64%;width:9.7px;height:9.7px;--dur:13.34s;--delay:-5.83s;--sway:48.3px;--r0:35deg;--r1:340deg;--op:0.58;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg28" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#fff0f5"/>
+          <stop offset="100%" stop-color="#ffd1e1"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg28)"/>
+    </svg><svg class="petal" style="top:79.54%;width:15.3px;height:15.3px;--dur:17.73s;--delay:-21.72s;--sway:20.4px;--r0:4deg;--r1:525deg;--op:0.89;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg29" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffdce8"/>
+          <stop offset="100%" stop-color="#ffb3cd"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg29)"/>
+    </svg><svg class="petal" style="top:89.32%;width:10.2px;height:10.2px;--dur:12.27s;--delay:-2.35s;--sway:10.3px;--r0:139deg;--r1:-185deg;--op:0.79;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg30" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffe6ef"/>
+          <stop offset="100%" stop-color="#ffc2d8"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg30)"/>
+    </svg><svg class="petal" style="top:65.94%;width:16.7px;height:16.7px;--dur:16.56s;--delay:-5.52s;--sway:45.8px;--r0:26deg;--r1:253deg;--op:0.84;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg31" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffdce8"/>
+          <stop offset="100%" stop-color="#ffb3cd"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg31)"/>
+    </svg><svg class="petal" style="top:2.33%;width:15.9px;height:15.9px;--dur:18.01s;--delay:-5.76s;--sway:29.1px;--r0:282deg;--r1:-116deg;--op:0.5;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg32" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffe6ef"/>
+          <stop offset="100%" stop-color="#ffc2d8"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg32)"/>
+    </svg><svg class="petal" style="top:52.74%;width:16.5px;height:16.5px;--dur:17.41s;--delay:-3.26s;--sway:-32.3px;--r0:157deg;--r1:-209deg;--op:0.87;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg33" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffe6ef"/>
+          <stop offset="100%" stop-color="#ffc2d8"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg33)"/>
+    </svg><svg class="petal" style="top:65.43%;width:15.0px;height:15.0px;--dur:14.89s;--delay:-12.32s;--sway:42.5px;--r0:317deg;--r1:58deg;--op:0.86;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg34" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffe6ef"/>
+          <stop offset="100%" stop-color="#ffc2d8"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg34)"/>
+    </svg><svg class="petal" style="top:83.97%;width:9.2px;height:9.2px;--dur:19.1s;--delay:-7.31s;--sway:48.1px;--r0:342deg;--r1:649deg;--op:0.52;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg35" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffdce8"/>
+          <stop offset="100%" stop-color="#ffb3cd"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg35)"/>
+    </svg><svg class="petal" style="top:37.58%;width:9.3px;height:9.3px;--dur:16.18s;--delay:-4.39s;--sway:46.8px;--r0:179deg;--r1:-157deg;--op:0.55;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg36" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffe6ef"/>
+          <stop offset="100%" stop-color="#ffc2d8"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg36)"/>
+    </svg><svg class="petal" style="top:39.06%;width:11.5px;height:11.5px;--dur:11.76s;--delay:-17.01s;--sway:-9.9px;--r0:260deg;--r1:644deg;--op:0.89;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg37" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffdce8"/>
+          <stop offset="100%" stop-color="#ffb3cd"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg37)"/>
+    </svg><svg class="petal" style="top:83.56%;width:11.4px;height:11.4px;--dur:17.39s;--delay:-21.64s;--sway:-41.2px;--r0:305deg;--r1:707deg;--op:0.79;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg38" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffd1e1"/>
+          <stop offset="100%" stop-color="#ffa3c2"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg38)"/>
+    </svg><svg class="petal" style="top:42.58%;width:17.9px;height:17.9px;--dur:12.27s;--delay:-19.79s;--sway:-26.0px;--r0:22deg;--r1:-381deg;--op:0.69;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg39" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffc7db"/>
+          <stop offset="100%" stop-color="#ff99bc"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg39)"/>
+    </svg><svg class="petal" style="top:65.88%;width:17.5px;height:17.5px;--dur:19.11s;--delay:-4.33s;--sway:-1.9px;--r0:340deg;--r1:689deg;--op:0.76;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg40" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffdce8"/>
+          <stop offset="100%" stop-color="#ffb3cd"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg40)"/>
+    </svg><svg class="petal" style="top:68.94%;width:11.7px;height:11.7px;--dur:14.4s;--delay:-8.98s;--sway:-4.8px;--r0:151deg;--r1:-312deg;--op:0.54;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg41" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#fff0f5"/>
+          <stop offset="100%" stop-color="#ffd1e1"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg41)"/>
+    </svg><svg class="petal" style="top:64.99%;width:17.1px;height:17.1px;--dur:17.77s;--delay:-6.62s;--sway:9.8px;--r0:0deg;--r1:335deg;--op:0.55;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg42" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffc7db"/>
+          <stop offset="100%" stop-color="#ff99bc"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg42)"/>
+    </svg><svg class="petal" style="top:58.42%;width:11.9px;height:11.9px;--dur:15.86s;--delay:-14.86s;--sway:6.1px;--r0:86deg;--r1:-431deg;--op:0.58;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg43" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffc7db"/>
+          <stop offset="100%" stop-color="#ff99bc"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg43)"/>
+    </svg><svg class="petal" style="top:33.17%;width:16.4px;height:16.4px;--dur:19.26s;--delay:-14.8s;--sway:-22.5px;--r0:101deg;--r1:-154deg;--op:0.47;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg44" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#fff0f5"/>
+          <stop offset="100%" stop-color="#ffd1e1"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg44)"/>
+    </svg><svg class="petal" style="top:58.85%;width:15.9px;height:15.9px;--dur:16.01s;--delay:-19.5s;--sway:12.6px;--r0:356deg;--r1:732deg;--op:0.64;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pg45" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffe6ef"/>
+          <stop offset="100%" stop-color="#ffc2d8"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2C16.5 5.5 19.5 11.5 16.2 18.8L12 15.2L7.8 18.8C4.5 11.5 7.5 5.5 12 2Z" fill="url(#pg45)"/>
+    </svg>
+  <div class="particle" style="top:64.01%;width:1.8px;height:1.8px;--dur:22.76s;--delay:-20.02s;--sway:-27.5px;--op:0.46;"></div><div class="particle" style="top:19.36%;width:3.7px;height:3.7px;--dur:19.73s;--delay:-1.31s;--sway:-17.6px;--op:0.67;"></div><div class="particle" style="top:45.45%;width:3.4px;height:3.4px;--dur:21.68s;--delay:-25.69s;--sway:6.7px;--op:0.73;"></div><div class="particle" style="top:85.9%;width:3.0px;height:3.0px;--dur:22.35s;--delay:-13.12s;--sway:23.1px;--op:0.52;"></div><div class="particle" style="top:86.44%;width:3.3px;height:3.3px;--dur:19.17s;--delay:-6.74s;--sway:-17.7px;--op:0.57;"></div><div class="particle" style="top:74.22%;width:2.8px;height:2.8px;--dur:21.15s;--delay:-7.14s;--sway:-29.6px;--op:0.39;"></div><div class="particle" style="top:28.27%;width:2.4px;height:2.4px;--dur:20.02s;--delay:-3.6s;--sway:-18.8px;--op:0.6;"></div><div class="particle" style="top:68.7%;width:1.9px;height:1.9px;--dur:18.3s;--delay:-14.11s;--sway:-5.9px;--op:0.35;"></div><div class="particle" style="top:42.07%;width:3.6px;height:3.6px;--dur:20.59s;--delay:-18.08s;--sway:25.0px;--op:0.63;"></div><div class="particle" style="top:38.38%;width:1.8px;height:1.8px;--dur:17.57s;--delay:-19.59s;--sway:24.7px;--op:0.73;"></div><div class="particle" style="top:41.97%;width:3.3px;height:3.3px;--dur:20.1s;--delay:-15.68s;--sway:-19.6px;--op:0.36;"></div><div class="particle" style="top:43.53%;width:1.9px;height:1.9px;--dur:17.37s;--delay:-17.66s;--sway:-6.7px;--op:0.33;"></div><div class="particle" style="top:46.47%;width:2.1px;height:2.1px;--dur:21.09s;--delay:-0.7s;--sway:-7.4px;--op:0.53;"></div><div class="particle" style="top:5.52%;width:3.1px;height:3.1px;--dur:14.76s;--delay:-12.0s;--sway:-31.5px;--op:0.44;"></div><div class="particle" style="top:22.68%;width:2.5px;height:2.5px;--dur:22.9s;--delay:-9.86s;--sway:17.6px;--op:0.67;"></div><div class="particle" style="top:26.46%;width:2.0px;height:2.0px;--dur:13.25s;--delay:-14.02s;--sway:35.0px;--op:0.42;"></div><div class="particle" style="top:63.46%;width:3.4px;height:3.4px;--dur:21.47s;--delay:-19.61s;--sway:31.5px;--op:0.35;"></div><div class="particle" style="top:4.9%;width:2.1px;height:2.1px;--dur:14.64s;--delay:-17.41s;--sway:4.5px;--op:0.36;"></div><div class="particle" style="top:68.05%;width:3.3px;height:3.3px;--dur:15.18s;--delay:-15.79s;--sway:17.4px;--op:0.31;"></div><div class="particle" style="top:79.2%;width:3.7px;height:3.7px;--dur:14.41s;--delay:-0.67s;--sway:-13.2px;--op:0.59;"></div><div class="particle" style="top:92.11%;width:2.6px;height:2.6px;--dur:22.3s;--delay:-1.98s;--sway:13.3px;--op:0.56;"></div><div class="particle" style="top:12.48%;width:3.3px;height:3.3px;--dur:24.05s;--delay:-15.61s;--sway:-26.5px;--op:0.74;"></div><div class="particle" style="top:75.79%;width:2.5px;height:2.5px;--dur:18.57s;--delay:-9.63s;--sway:0.4px;--op:0.42;"></div><div class="particle" style="top:82.01%;width:3.4px;height:3.4px;--dur:14.37s;--delay:-24.98s;--sway:9.5px;--op:0.66;"></div><div class="particle" style="top:68.78%;width:2.7px;height:2.7px;--dur:22.54s;--delay:-25.1s;--sway:-16.1px;--op:0.65;"></div><div class="particle" style="top:53.05%;width:2.8px;height:2.8px;--dur:18.66s;--delay:-19.01s;--sway:-16.2px;--op:0.68;"></div><div class="particle" style="top:80.26%;width:2.0px;height:2.0px;--dur:24.46s;--delay:-6.34s;--sway:-2.5px;--op:0.56;"></div><div class="particle" style="top:38.25%;width:1.9px;height:1.9px;--dur:24.06s;--delay:-4.73s;--sway:-20.2px;--op:0.65;"></div><div class="particle" style="top:34.65%;width:3.6px;height:3.6px;--dur:22.12s;--delay:-7.18s;--sway:-34.3px;--op:0.72;"></div><div class="particle" style="top:10.96%;width:3.2px;height:3.2px;--dur:19.35s;--delay:-19.71s;--sway:13.3px;--op:0.57;"></div><div class="particle" style="top:48.65%;width:3.4px;height:3.4px;--dur:14.21s;--delay:-5.76s;--sway:13.4px;--op:0.4;"></div><div class="particle" style="top:57.08%;width:2.7px;height:2.7px;--dur:19.9s;--delay:-11.06s;--sway:17.2px;--op:0.42;"></div><div class="particle" style="top:68.37%;width:2.3px;height:2.3px;--dur:16.27s;--delay:-3.14s;--sway:-21.5px;--op:0.31;"></div><div class="particle" style="top:52.84%;width:3.3px;height:3.3px;--dur:15.41s;--delay:-5.63s;--sway:-1.1px;--op:0.61;"></div><div class="particle" style="top:93.82%;width:2.8px;height:2.8px;--dur:16.68s;--delay:-2.61s;--sway:-21.4px;--op:0.36;"></div><div class="particle" style="top:19.69%;width:1.8px;height:1.8px;--dur:19.94s;--delay:-7.13s;--sway:33.2px;--op:0.53;"></div><div class="particle" style="top:67.86%;width:2.1px;height:2.1px;--dur:24.29s;--delay:-12.76s;--sway:26.1px;--op:0.54;"></div><div class="particle" style="top:46.65%;width:2.7px;height:2.7px;--dur:15.4s;--delay:-1.34s;--sway:30.9px;--op:0.49;"></div><div class="particle" style="top:79.46%;width:2.6px;height:2.6px;--dur:13.96s;--delay:-16.37s;--sway:-31.2px;--op:0.32;"></div><div class="particle" style="top:55.34%;width:2.4px;height:2.4px;--dur:25.92s;--delay:-3.08s;--sway:18.5px;--op:0.55;"></div><div class="particle" style="top:76.54%;width:2.3px;height:2.3px;--dur:19.79s;--delay:-11.71s;--sway:-4.0px;--op:0.68;"></div><div class="particle" style="top:95.07%;width:2.4px;height:2.4px;--dur:21.07s;--delay:-15.85s;--sway:16.8px;--op:0.72;"></div><div class="particle" style="top:22.32%;width:2.2px;height:2.2px;--dur:21.59s;--delay:-4.08s;--sway:-22.8px;--op:0.29;"></div><div class="particle" style="top:3.25%;width:2.7px;height:2.7px;--dur:20.72s;--delay:-7.57s;--sway:-18.8px;--op:0.6;"></div>
+
+  <div class="caption">hanami sleep mode</div>
+</div>
+</body>
+</html>
